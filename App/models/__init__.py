@@ -1,0 +1,1 @@
+"""Anfrage- und Antwortmodelle."""
