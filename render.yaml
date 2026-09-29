@@ -5,6 +5,6 @@ services:
     plan: free
     branch: main
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn App.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn App.main:app --host 0.0.0.0 --port $PORT --no-access-log
     healthCheckPath: /health
     autoDeployTrigger: checksPass
