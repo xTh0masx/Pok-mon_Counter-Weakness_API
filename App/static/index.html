@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Pokémon Counter Lab</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/styles.css?v=1">
+  <script src="/static/app.js?v=1" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#search">Skip to search</a>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Pokémon Counter Lab home"><span class="ball" aria-hidden="true"></span><span>COUNTER<span class="brand-light">LAB</span><small>POKÉMON MATCHUP EXPLORER</small></span></a>
+      <nav aria-label="Main navigation"><span id="connection" class="connection">Connecting…</span><a href="/docs" class="docs-link">API docs <span aria-hidden="true">↗</span></a></nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div><p class="eyebrow"><span class="red-dot"></span> A BETTER MATCHUP STARTS HERE</p><h1 id="hero-title">Know the weakness.<br><span>Choose your counter.</span></h1><p class="intro">Explore type matchups and find your next pick.<br>Real Pokémon data. Clear, explainable recommendations.</p></div>
+        <div class="hero-mark" aria-hidden="true"><div class="orbit"></div><span class="ball big-ball"></span><span class="orbit-label">18 TYPES · ONE ADVANTAGE</span></div>
+      </section>
+
+      <div class="workspace">
+        <aside class="search-panel">
+          <p class="eyebrow muted">01 / SET YOUR TARGET</p><h2>Who are you facing?</h2>
+          <form id="search" novalidate>
+            <label for="query">Pokémon or type</label>
+            <div class="input-wrap"><span aria-hidden="true">⌕</span><input id="query" name="query" value="charizard" placeholder="e.g. charizard or water" maxlength="50" autocomplete="off" spellcheck="false" aria-describedby="query-help" required></div>
+            <p id="query-help" class="help">Use English names, like charizard, pikachu or water.</p>
+            <div class="form-row"><div><label for="input-type">Search as</label><select id="input-type"><option value="auto">Auto-detect</option><option value="pokemon">Pokémon</option><option value="type">Type</option></select></div><div><label for="limit">Counters</label><select id="limit"><option value="3">Top 3</option><option value="5" selected>Top 5</option><option value="10">Top 10</option></select></div></div>
+            <button id="analyze" type="submit" class="primary">Find counters <span aria-hidden="true">→</span></button>
+          </form>
+          <p class="small-label">OR TRY A QUICK PICK</p>
+          <div class="quick-picks"><button type="button" data-query="charizard">Charizard <span>↗</span></button><button type="button" data-query="pikachu">Pikachu <span>↗</span></button><button type="button" data-query="water">Water <span>↗</span></button></div>
+          <div class="method-note"><span class="note-icon" aria-hidden="true">i</span><div><strong>A useful starting point</strong><p>Rankings combine type advantage, offensive stats and speed. Moves, abilities and items can change a battle.</p></div></div>
+          <a class="quiet-link" href="/docs">Explore the API <span aria-hidden="true">↗</span></a>
+        </aside>
+
+        <section class="results-panel" aria-label="Matchup analysis" aria-busy="false">
+          <div class="panel-top"><p class="eyebrow muted">02 / YOUR MATCHUP</p><span class="small-label">TYPE ADVANTAGE, EXPLAINED</span></div>
+          <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+          <div id="error" class="error" role="alert" tabindex="-1" hidden></div>
+          <div id="empty" class="empty-state"><span class="target-art" aria-hidden="true"><span></span></span><p class="eyebrow muted">SCOUT BEFORE YOU BATTLE</p><h2>Your next advantage<br>is one search away.</h2><p>Choose a Pokémon or type to reveal its weaknesses<br class="desktop-break"> and a ranked list of potential counters.</p><div class="legend"><span><b>2×</b> Super effective</span><span><b>4×</b> Double weakness</span></div></div>
+          <div id="loading" class="loading-state" hidden><span class="spinner" aria-hidden="true"></span><h2>Finding your advantage…</h2><p>Checking types and comparing potential counters.</p></div>
+          <div id="results" hidden>
+            <div class="target-heading"><div><p class="small-label">TARGET IDENTIFIED</p><h2 id="target-name"></h2><div id="target-types" class="badges"></div></div><span id="data-source" class="source-tag"></span></div>
+            <div id="warnings" class="warning" hidden><strong>Limited results</strong><ul id="warning-list"></ul></div>
+            <div class="section-heading"><h3>Hit where it hurts</h3><span>Incoming damage</span></div>
+            <div id="weaknesses" class="weakness-grid"></div>
+            <div class="section-heading counter-heading"><h3>Your counter picks</h3><span id="counter-count"></span></div>
+            <p class="ranking-note">Best matches in the sampled pool · score out of 10</p>
+            <ol id="counters" class="counter-list"></ol>
+            <p id="no-counters" class="no-counters" hidden>No counters available for this matchup. You can still use the type weaknesses above.</p>
+            <details class="raw-details"><summary>View API response</summary><pre id="raw-response"></pre></details>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer><span><span class="red-dot"></span> BUILT FOR CURIOUS TRAINERS</span><p>Powered by PokéAPI · An independent educational project.<br>Pokémon belongs to its respective owners.</p></footer>
+  </div>
+</body>
+</html>

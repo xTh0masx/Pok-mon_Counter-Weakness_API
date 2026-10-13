@@ -4,8 +4,20 @@ FastAPI-Anwendung zur Analyse von Pokémon-Schwächen und passenden Countern.
 Das MVP verwendet englische PokéAPI-Bezeichner wie `charizard` und `fire`.
 Empfehlungen beruhen auf Typen und Basiswerten, nicht auf einer Kampfsimulation.
 
+## Dokumentation
+
+- [Lokaler Betrieb und Fehlerhilfe](docs/LOCAL_USAGE.md): Startdatei, Bedienung,
+  Beenden, Portwahl und Browser-Cache bereinigen.
+- [Projektstand und Nachweise](docs/PROJECT_STATUS.md): Architektur,
+  Entscheidungen, bisherige Prüfungen, Grenzen und nächste Meilensteine.
+- [GitHub und Render](docs/DEPLOYMENT.md): Veröffentlichung und Cloud-Abnahme.
+
+Stand 29.09.2026: Die lokale Oberfläche funktioniert und wurde vom Benutzer
+bestätigt. Standardadresse ist **http://127.0.0.1:8765/**.
+
 ## Implementierter Stand
 
+- Browser-Oberfläche unter `/` mit Suche, Typ-Badges, Schwächen und Counter-Karten.
 - Pokémon- und Typanalyse mit automatischer Erkennung sowie validierten JSON-Modellen.
 - Multiplikative Schwächenberechnung für Einzel- und Doppeltypen einschließlich Immunitäten.
 - Begründete, absteigend sortierte Counter-Rangliste ohne Duplikate oder Ziel-Pokémon.
@@ -17,14 +29,36 @@ Empfehlungen beruhen auf Typen und Basiswerten, nicht auf einer Kampfsimulation.
 
 ## Lokal starten
 
+**Einfachster Start unter Windows:** `Start-Pokemon.bat` im Projektordner
+doppelklicken. Python 3.12 muss installiert sein. Der Launcher erstellt bei
+Bedarf `.venv`, installiert die Laufzeit-Abhängigkeiten, legt eine fehlende
+`.env` aus der Vorlage an und öffnet die Anwendung im Standardbrowser.
+Vorhandene Einstellungen bleiben erhalten. Für die Erstinstallation und
+Live-Pokémon-Daten ist Internet erforderlich.
+
+Das Fenster geöffnet lassen; **Strg+C** beendet den damit gestarteten Server.
+Ist die Pokémon-Oberfläche bereits aktiv, wird sie wieder geöffnet. Ist Port
+8765 durch eine andere Anwendung belegt, wird ein freier Port bis 8775 gesucht.
+Die tatsächliche Adresse steht im Fenster. Nach Codeänderungen neu starten.
+
+Optional im Terminal:
+
+```powershell
+.\Start-Pokemon.bat --check
+.\Start-Pokemon.bat --port 8100
+```
+
+`--check` prüft nur die Umgebung; es installiert oder startet nichts.
+Die folgenden manuellen Schritte bleiben als Alternative verfügbar.
+
 Python 3.12 verwenden. In PowerShell im Projektverzeichnis:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-Copy-Item .env.example .env
-.\.venv\Scripts\python.exe -m uvicorn App.main:app --reload --no-access-log
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+.\.venv\Scripts\python.exe -m uvicorn App.main:app --reload --port 8765 --no-access-log
 ```
 
 Eine bereits konfigurierte `.env` beibehalten. Umgebungsvariablen haben Vorrang
@@ -32,12 +66,30 @@ vor `.env`; ungültige Konfiguration verhindert den Start.
 Für reinen Betrieb genügt `requirements.txt`.
 Die Großschreibung von `App` und `Tests` ist unter Linux relevant.
 
-Swagger: http://127.0.0.1:8000/docs
+Anwendung: http://127.0.0.1:8765/
+
+Port 8765 trennt Pokémon von anderen lokalen Projekten. Falls unter dem alten
+Port 8000 weiterhin BeerScale erscheint, kann dessen Offline-Service-Worker
+die gespeicherte Seite anzeigen. Den neuen Link oder `Start-Pokemon.bat` verwenden.
+Die gezielte Bereinigung des alten Browser-Caches ist in
+[Lokaler Betrieb](docs/LOCAL_USAGE.md#beerscale-oder-eine-alte-seite-erscheint) beschrieben.
+
+Pokémon oder Typ eingeben (englische Namen), Suchmodus und Anzahl auswählen,
+dann **Find counters** anklicken. **Charizard**, **Pikachu** und **Water** sind
+direkte Beispielabfragen. Die Ergebnisse zeigen Typen, Schadensmultiplikatoren,
+Counter mit Score sowie Hinweise auf Cache oder eingeschränkte Daten.
+Ladezustände und verständliche Fehler erscheinen direkt in der Oberfläche.
+Die Darstellung passt sich an schmale Bildschirme an.
+
+Swagger bleibt unter http://127.0.0.1:8765/docs verfügbar.
+Frontend und API laufen gemeinsam im selben Uvicorn-Prozess; es sind kein
+Node.js-Server und keine zusätzlichen Pakete erforderlich.
 
 ## Endpoints und Beispiel
 
 | Endpoint | Verhalten |
 | --- | --- |
+| `GET /` | Pokémon Counter Lab, die interaktive Browser-Oberfläche |
 | `POST /api/v1/analyze` | Schwächen und bis zu `limit` Counter |
 | `GET /health` | Prozess lebt; kein externer Aufruf |
 | `GET /ready` | Typdaten verfügbar, aus Cache oder begrenztem Fallback |
@@ -45,7 +97,7 @@ Swagger: http://127.0.0.1:8000/docs
 
 ```powershell
 $body = @{ query = 'charizard'; input_type = 'auto'; limit = 3 } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/analyze -ContentType 'application/json' -Body $body
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/v1/analyze -ContentType 'application/json' -Body $body
 ```
 
 `query` wird getrimmt und kleingeschrieben: 1–50 Zeichen, ASCII-Buchstaben,
@@ -143,6 +195,7 @@ Dashboard oder Alarmierung ist noch nicht eingerichtet.
 ```text
 App/
   main.py                  App-Factory, Lebenszyklus, Health und Ready
+  static/                  Browser-Oberfläche: HTML, CSS und JavaScript
   api/routes.py            Analyse-Endpoint und Fehlerzuordnung
   core/config.py           Validierte Umgebungsvariablen und .env
   core/logging.py           JSON-Logs und Correlation-ID
@@ -154,7 +207,10 @@ App/
     cache_service.py        Begrenzter TTL-/Stale-Cache
     type_chart.py           Lokale moderne Typentabelle
 Tests/                     Offline-Tests mit simuliertem HTTP-Transport
+Start-Pokemon.bat          Windows-Startdatei zum Doppelklicken
+scripts/start_local.py     Einrichtung, Portwahl, Browserstart und Server
 scripts/smoke_test.py       Expliziter Live- und Cloud-Abnahmetest
+docs/                      Betrieb, Projektstand und Deployment-Anleitung
 .github/workflows/ci.yml    Tests und Audit auf Python 3.12
 render.yaml                Render-Blueprint
 ```
@@ -183,6 +239,17 @@ Prüfstand vom 23.09.2026 unter Windows/Python 3.12:
   Einzelmessung, kein Lasttest oder p95-Nachweis.
 - Starlette meldet beim TestClient eine Deprecation-Warnung zur künftigen
   Umstellung von httpx auf httpx2; die Tests bestehen.
+
+Zusätzlicher Prüfstand vom 29.09.2026: 55 automatisierte Tests erfolgreich.
+Die neue Oberfläche wurde im Browser mit Charizard, Water, Top-3-Auswahl,
+unbekanntem Pokémon und schmalem Viewport geprüft. Der bestehende
+TestClient-Deprecation-Hinweis bleibt; im lokalen Testlauf war zusätzlich
+das Schreiben des pytest-Caches durch Dateirechte eingeschränkt.
+
+Launcher-Prüfung und HTTP-Abruf auf Port 8765 waren erfolgreich. Nach dem
+Wechsel vom alten Browser-Ursprung auf Port 8000 und der Anleitung zur
+Cache-Bereinigung bestätigte der Benutzer die Funktion. Einzelheiten und
+offene Nachweise stehen im [Projektstatus](docs/PROJECT_STATUS.md).
 
 ## CI und Render
 

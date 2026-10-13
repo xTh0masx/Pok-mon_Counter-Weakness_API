@@ -24,3 +24,15 @@ def test_docs_and_openapi(client):
     schema = client.get("/openapi.json").json()
     assert "/api/v1/analyze" in schema["paths"]
     assert "AnalysisRequest" in schema["components"]["schemas"]
+
+
+def test_interface_and_assets_are_served_without_upstream(client, upstream):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Pokémon Counter Lab" in response.text
+    assert response.headers["cache-control"] == "no-store"
+    assert client.get("/static/styles.css").status_code == 200
+    script = client.get("/static/app.js")
+    assert script.status_code == 200
+    assert "/api/v1/analyze" in script.text
+    assert not upstream["calls"]

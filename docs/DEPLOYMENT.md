@@ -8,9 +8,11 @@ anschließend die API unter einer öffentlichen HTTPS-Adresse.
 
 Lokal ist `origin` bereits auf dieses Repository eingestellt:
 [xTh0masx/Pok-mon_Counter-Weakness_API](https://github.com/xTh0masx/Pok-mon_Counter-Weakness_API).
-Der Ausgangsbranch ist `main`. Die neue Implementierung und diese Anleitung
-müssen noch committed und gepusht werden. Ein neues Repository oder ein
-erneutes `git init` ist nicht erforderlich.
+Der Ausgangsbranch ist `main`. Die API-Basis ist bereits im lokalen Commit
+`dffcf30` (First Local Demo Version) enthalten. Am 29.09.2026 waren die neue
+Browser-Oberfläche, der Launcher und Dokumentationsänderungen noch lokal
+uncommitted. Vor dem Fortfahren mit `git status` den tatsächlichen Stand prüfen.
+Ein neues Repository oder erneutes `git init` ist nicht erforderlich.
 
 Vorbereitet sind `.github/workflows/ci.yml`, `render.yaml`, `.python-version`
 und `scripts/smoke_test.py`. Eine Datenbank wird für diese API nicht benötigt.
@@ -26,9 +28,9 @@ git status
 git remote -v
 .\.venv\Scripts\python.exe -m pytest -q
 git switch -c codex/cloud-setup
-git add App Tests scripts docs README.md requirements.txt requirements-dev.txt pytest.ini .github .env.example .gitignore .python-version render.yaml
+git add App Tests scripts docs Start-Pokemon.bat README.md requirements.txt requirements-dev.txt pytest.ini .github .env.example .gitignore .python-version render.yaml
 git diff --cached --stat
-git commit -m "Implement Pokemon API and prepare cloud deployment"
+git commit -m "Add Pokemon interface, local launcher and documentation"
 git push -u origin codex/cloud-setup
 ```
 
@@ -133,7 +135,9 @@ manuellen Web Service brauchst du nicht anzulegen.
 | Instanz | Free, ein Worker |
 
 `App` muss großgeschrieben sein. Den Startbefehl ohne `--reload` verwenden.
-`$PORT` wird auf Render bereitgestellt; nicht durch `8000` ersetzen.
+`$PORT` wird auf Render bereitgestellt; nicht durch den lokalen Port `8765`
+oder den früher verwendeten Port `8000` ersetzen. Der Windows-Launcher ist
+nur für den lokalen Betrieb vorgesehen und wird auf Render nicht gestartet.
 PokéAPI benötigt keinen API-Key. Die Standardkonfiguration reicht für den
 ersten Start; optionale Werte aus `.env.example` kommen unter **Environment**.
 
@@ -159,11 +163,13 @@ Dashboard kopieren. Der Name der URL kann einen Zusatz enthalten.
 Im Browser nacheinander öffnen:
 
 - `https://DEIN-SERVICE.onrender.com/health`: `{"status":"ok"}`.
+- `https://DEIN-SERVICE.onrender.com/`: Pokémon Counter Lab mit Suchformular.
 - `https://DEIN-SERVICE.onrender.com/docs`: Swagger mit Pokémon-Titel.
 - `https://DEIN-SERVICE.onrender.com/ready`: `ready` oder begründet `degraded`.
 
-Die Root-Adresse `/` liefert derzeit 404; die Oberfläche befindet sich unter
-`/docs`. In Swagger bei **POST /api/v1/analyze → Try it out** senden:
+Die Browser-Oberfläche befindet sich unter `/`; dort einen Namen eingeben und
+**Find counters** anklicken. Alternativ in Swagger unter `/docs` bei
+**POST /api/v1/analyze → Try it out** senden:
 
 ```json
 {"query":"charizard","input_type":"auto","limit":3}
@@ -217,10 +223,12 @@ kontrollierter Ausfallnachweis, Lasttest mit p95 und Abschlussdokumentation.
 | `No module named App` | Root Directory und Großschreibung im Startbefehl prüfen |
 | Build findet ein Paket nicht | Python-Version und erste Fehlermeldung des pip-Schritts prüfen |
 | Deployment wartet | CI-Lauf desselben main-Commits und GitHub-Verbindung prüfen |
-| 404 beim Öffnen | `/docs` statt `/` aufrufen |
+| 404 bei `/` | Prüfen, ob der Commit mit `App/static` und der neuen Root-Route deployed wurde; `/docs` bleibt die API-Dokumentation |
 | 503 bei Analyse | Render-Logs auf upstream_error prüfen; Typanalyse mit `water` testen |
 | 429 bei wiederholten Tests | Retry-After abwarten; Proxy-/Client-IP-Konfiguration prüfen |
 | Git meldet abweichenden Remote-Stand | Nicht erzwingen; Änderungen zunächst mit dem Remote-Branch abgleichen |
 
-Stand dieser Anleitung: 23.09.2026. GitHub-Anmeldung, Merge und tatsächliche
-Render-Bereitstellung sind durch diese Dokumentation noch nicht durchgeführt.
+Stand dieser Anleitung: 29.09.2026. Ein erfolgreicher GitHub-CI-Lauf und eine
+öffentliche Render-Bereitstellung sind noch nicht nachgewiesen. Die lokale
+Bedienung und Cache-Bereinigung stehen in [LOCAL_USAGE.md](LOCAL_USAGE.md),
+der Nachweisstand in [PROJECT_STATUS.md](PROJECT_STATUS.md).

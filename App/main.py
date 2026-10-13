@@ -1,10 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from App.api.routes import router
 from App.core.config import Settings
@@ -31,6 +33,12 @@ def create_app(settings: Settings | None = None, transport: httpx.AsyncBaseTrans
     app = FastAPI(title="Pokemon Weakness and Counter API", version="1.0.0", lifespan=lifespan)
     app.add_middleware(OperationsMiddleware, rate_limit=settings.rate_limit_per_minute)
     app.include_router(router, prefix="/api/v1")
+    static_dir = Path(__file__).resolve().parent / "static"
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+    @app.get("/", include_in_schema=False)
+    async def interface():
+        return FileResponse(static_dir / "index.html", headers={"Cache-Control": "no-store"})
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):
